@@ -91,10 +91,21 @@ namespace HelixTest
         public bool showFaces { get; set; }
         public bool showPanels { get; set; }
 
+        public PerspectiveCamera Camera
+        {
+            get { return this.camera as PerspectiveCamera; }
+
+            set
+            {
+                camera = value;
+                //RaisePropertyChanged("Camera");
+            }
+        }
 
 
-        #region main
-
+        /// <summary>
+        /// constructor
+        /// </summary>
         public mainViewModel()
         {
 
@@ -151,25 +162,14 @@ namespace HelixTest
             panelGridColor = Color.FromArgb(255, 100, 100, 100);
             panelGridTransform = new Media3D.TranslateTransform3D(0, 0, -0.01);
 
-            addCeiElements();
+            addCubes();
         }
 
-
-        public PerspectiveCamera Camera
-        {
-            get { return this.camera as PerspectiveCamera; }
-
-            set
-            {
-                camera = value;
-                //RaisePropertyChanged("Camera");
-            }
-        }
 
         /// <summary>
         /// Gather data from helixRevitHelper for display in Helix viewer.
         /// </summary>
-        public void addCeiElements()
+        public void addCubes()
         {
 
             IEnumerable<int> count = Enumerable.Range(0, 5);
@@ -186,9 +186,6 @@ namespace HelixTest
             foreach (cubeDataModel sdm in cubesToAdd) cubes.Add(sdm);
         }
 
-
-
-        #endregion
 
         #region panel properties functions
 
@@ -248,7 +245,6 @@ namespace HelixTest
                 currentPanelMaterial = previewPanelMaterial;
             }
         }
-
 
         #endregion
 
