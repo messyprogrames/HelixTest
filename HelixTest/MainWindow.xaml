@@ -1,0 +1,338 @@
+﻿<Window x:Name="mainWindow"
+        x:Class="HelixTest.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+        xmlns:ie="http://schemas.microsoft.com/expression/2010/interactions"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:hx="clr-namespace:HelixToolkit.Wpf.SharpDX;assembly=HelixToolkit.Wpf.SharpDX"
+        xmlns:local="clr-namespace:HelixTest"
+        xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
+        mc:Ignorable="d"
+        Background="#FF727272"
+        Title="Title"
+        WindowStartupLocation="Manual"
+        Width="1600"
+        Height="900"
+        HorizontalAlignment="Center"
+        VerticalAlignment="Center">
+    <Window.Resources>
+        <hx:RenderTechniqueConverter x:Key="RenderTechniqueConverter" />
+    </Window.Resources>
+    <Grid>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="3*" />
+                <ColumnDefinition Width="5" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!--#region Helix Viewer, Data Viewer, Status Bar -->
+            <Grid Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="auto" />
+                </Grid.RowDefinitions>
+
+                <Grid>
+                    <!--#region grid background-->
+                    <Grid.Background>
+                        <SolidColorBrush Color="#FF727272" />
+                    </Grid.Background>
+                    <!--#endregion-->
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="auto" />
+                    </Grid.RowDefinitions>
+                    <!--#region helix-->
+                    <hx:Viewport3DX Name="_viewport3d"
+                                    Grid.Row="0"
+                                    Title="{Binding title}"
+                                    BackgroundColor="WhiteSmoke"
+                                    Camera="{Binding camera}"
+                                    Cursor="Arrow"
+                                    CoordinateSystemLabelForeground="#434343"
+                                    EffectsManager="{Binding effectsManager}"
+                                    EnableDesignModeRendering="False"
+                                    FXAALevel="Low"
+                                    ModelUpDirection="{Binding upDirection}"
+                                    ShowCoordinateSystem="True"
+                                    SubTitle="{Binding subTitle}"
+                                    TextBrush="Black"
+                                    UseDefaultGestures="False"
+                                    ZoomExtentsWhenLoaded="True"
+                                    EnableSwapChainRendering="True"
+                                    EnableMouseButtonHitTest="True"
+                                    BelongsToParentWindow="True">
+
+                        <!--#region Input Bindings and Viewport Interactions -->
+                        <hx:Viewport3DX.InputBindings>
+                            <KeyBinding Key="B"
+                                        Command="hx:ViewportCommands.BackView" />
+                            <KeyBinding Key="F"
+                                        Command="hx:ViewportCommands.FrontView" />
+                            <KeyBinding Key="U"
+                                        Command="hx:ViewportCommands.TopView" />
+                            <KeyBinding Key="D"
+                                        Command="hx:ViewportCommands.BottomView" />
+                            <KeyBinding Key="L"
+                                        Command="hx:ViewportCommands.LeftView" />
+                            <KeyBinding Key="R"
+                                        Command="hx:ViewportCommands.RightView" />
+                            <KeyBinding Command="hx:ViewportCommands.ZoomExtents"
+                                        Gesture="Control+E" />
+
+                            <MouseBinding Command="hx:ViewportCommands.Rotate"
+                                          Gesture="Shift+MiddleClick" />
+                            <MouseBinding Command="hx:ViewportCommands.Zoom"
+                                          Gesture="WheelClick" />
+                            <MouseBinding Command="hx:ViewportCommands.Pan"
+                                          Gesture="MiddleClick" />
+                        </hx:Viewport3DX.InputBindings>
+
+                        <i:Interaction.Triggers>
+                            <i:EventTrigger EventName="MouseDown3D">
+                                <ie:CallMethodAction MethodName="onMouseDown3DHandler"
+                                                     TargetObject="{Binding}" />
+                            </i:EventTrigger>
+                        </i:Interaction.Triggers>
+
+                        <!--#endregion-->
+
+                        <!--#region LIGHTING-->
+                        <hx:AmbientLight3D Color="{Binding ambientLightColor}" />
+                        <hx:DirectionalLight3D Direction="{Binding camera.LookDirection}"
+                                               Color="{Binding directionalLightColor}" />
+                        <!--#endregion-->
+
+                        <!--#region MAJOR GRID-->
+                        <hx:LineGeometryModel3D x:Name="majorGrid"
+                                                Geometry="{Binding majorGrid}"
+                                                Color="{Binding majorGridColor}"
+                                                Transform="{Binding majorGridTransform}"
+                                                Thickness="0.025"
+                                                IsHitTestVisible="False"
+                                                FixedSize="False"
+                                                DepthBias="99" />
+                        <!--#endregion-->
+
+
+                        <!--SELECTION POST EFFECT-->
+                        <hx:PostEffectMeshBorderHighlight Name="borderHighlight"
+                                                          EffectName="borderHighlight"
+                                                          Color="{Binding selectionColor}"
+                                                          NumberOfBlurPass="5"
+                                                          ScaleX="1"
+                                                          ScaleY="1" />
+
+                        <!--SURFACES FROM REVIT-->
+                        <hx:ItemsModel3D x:Name="_cubes"
+                                         ItemsSource="{Binding cubes}">
+                            <hx:ItemsModel3D.ItemTemplate>
+                                <DataTemplate>
+                                    <hx:MeshGeometryModel3D Geometry="{Binding helixGeometry}"
+                                                            FillMode="Solid"
+                                                            Material="{Binding material, Converter={x:Static local:projectMatToHelixMatConverter.instance}}"
+                                                            IsHitTestVisible="True"
+                                                            DepthBias="0"
+                                                            EnableViewFrustumCheck="True"
+                                                            IsEnabled="True"
+                                                            IsMultisampleEnabled="True"
+                                                            IsRendering="True"
+                                                            IsScissorEnabled="True" />
+                                </DataTemplate>
+                            </hx:ItemsModel3D.ItemTemplate>
+                        </hx:ItemsModel3D>
+                    </hx:Viewport3DX>
+                    <!--#endregion-->
+                    <Grid Grid.Row="1"
+                          Background="DarkGray">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="auto" />
+                        </Grid.ColumnDefinitions>
+                        <!--#region Status Bar -->
+                        <StatusBar Grid.Column="0"
+                                   VerticalAlignment="Bottom">
+                            <StatusBar.Background>
+                                <SolidColorBrush Opacity="0.5"
+                                                 Color="DarkGray" />
+                            </StatusBar.Background>
+                            <StatusBarItem>
+                                <TextBlock HorizontalAlignment="Left"
+                                           VerticalAlignment="Top"
+                                           Text="{Binding FrameRate, ElementName=_viewport3d, StringFormat=D3D11 - \{0:0.00\} FPS}" />
+                            </StatusBarItem>
+                            <Separator />
+                            <StatusBarItem>
+                                <TextBlock Text="{Binding camera.Position, StringFormat=Position: \{0:0.0\}}" />
+                            </StatusBarItem>
+                            <Separator />
+                            <StatusBarItem>
+                                <TextBlock Text="{Binding camera.LookDirection, StringFormat=LookDirection: \{0:0.0\}}" />
+                            </StatusBarItem>
+                            <Separator />
+                            <StatusBarItem>
+                                <TextBlock Text="{Binding camera.UpDirection, StringFormat=UpDirection: \{0:0.0\}}" />
+                            </StatusBarItem>
+                            <Separator />
+                            <StatusBarItem>
+                                <TextBlock Text="{Binding Items.Count, ElementName=_viewport3d, StringFormat=Children: \{0\}}" />
+                            </StatusBarItem>
+                            <Separator />
+                        </StatusBar>
+                        <!--#endregion-->
+                        <!--#region Display Controls-->
+                        <StackPanel Grid.Column="2"
+                                    Orientation="Horizontal"
+                                    Margin="4">
+                            <CheckBox Content="Show Curves"
+                                      IsChecked="{Binding showCurves }" />
+                            <CheckBox Content="Show Faces"
+                                      IsChecked="{Binding showFaces }" />
+                            <CheckBox Content="Show Panels"
+                                      IsChecked="{Binding showPanels }" />
+                        </StackPanel>
+                        <!--#endregion-->
+                    </Grid>
+                </Grid>
+            </Grid>
+            <!--#endregion-->
+
+            <GridSplitter Grid.Column="1"
+                          Width="5"
+                          HorizontalAlignment="Stretch"
+                          Background="DarkGray" />
+
+            <!--#region Properties Panel-->
+            <Grid Grid.Column="2"
+                  MinWidth="300">
+
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="2*" />
+                </Grid.RowDefinitions>
+                <!--#Region Properties & Modeling Tools-->
+                <TabControl Grid.Row="0">
+                    <!--#region Properties Panel-->
+                    <TabItem Header="Properties">
+                        <StackPanel Margin="5 10 5 10">
+                            <TextBlock Text="Panel ID Number"
+                                       Margin="0 0 0 4"
+                                       FontWeight="Bold" />
+                            <TextBox Text="{Binding selectedPanelId}"
+                                     Name="tbPanelID"
+                                     Background="LightGray"
+                                     IsEnabled="{Binding isPanelIdActive}"
+                                     Margin="0 0 0 15"
+                                     Padding="3" />
+                            <TextBlock Text="Panel Material"
+                                       Margin="0 0 0 4"
+                                       FontWeight="Bold" />
+                            <ComboBox Name="cbPanelMaterial"
+                                      Margin="0 0 0 15"
+                                      ItemsSource="{Binding helixMaterials}"
+                                      SelectedItem="{Binding previewPanelMaterial, Mode=TwoWay}">
+                                <!--<i:Interaction.Triggers>
+                                    <i:EventTrigger EventName="SelectionChanged">
+                                        <i:InvokeCommandAction Command="{Binding changePreviewMaterial}" />
+                                    </i:EventTrigger>
+                                </i:Interaction.Triggers>-->
+                            </ComboBox>
+                            <TextBlock Text="Material Grain Orientation"
+                                       Margin="0 0 0 4"
+                                       FontWeight="Bold" />
+                            <Grid Margin="0 0 0 15">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="7*" />
+                                    <ColumnDefinition Width="10" />
+                                    <ColumnDefinition Width="1*" />
+                                </Grid.ColumnDefinitions>
+                                <Slider Grid.Column="0"
+                                        Maximum="359"
+                                        Minimum="0"
+                                        TickPlacement="BottomRight"
+                                        TickFrequency="30"
+                                        Foreground="DarkGray" />
+                                <TextBox Grid.Column="2"
+                                         Text="0"
+                                         Padding="3"
+                                         TextAlignment="Center" />
+                            </Grid>
+                            <TextBlock Text="Panel Group Properties"
+                                       Margin="0 0 0 4"
+                                       FontWeight="Bold" />
+                            <Grid Margin="0 0 0 15">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1*" />
+                                    <ColumnDefinition Width="1*" />
+                                    <ColumnDefinition Width="1*" />
+                                    <ColumnDefinition Width="1*" />
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Margin="0 0 15 0"
+                                            Grid.Column="0">
+                                    <TextBlock Text="Height"
+                                               FontWeight="Normal"
+                                               Margin="0 0 0 3" />
+                                    <TextBox Text="100"
+                                             Padding="3" />
+                                </StackPanel>
+                                <StackPanel Margin="5 0 10 0"
+                                            Grid.Column="1">
+                                    <TextBlock Text="Width"
+                                               FontWeight="Normal"
+                                               Margin="0 0 0 3" />
+                                    <TextBox Text="100"
+                                             Padding="3" />
+                                </StackPanel>
+                                <StackPanel Margin="5 0 10 0"
+                                            Grid.Column="2">
+                                    <TextBlock Text="Depth"
+                                               FontWeight="Normal"
+                                               Margin="0 0 0 3" />
+                                    <TextBox Text="100"
+                                             Padding="3" />
+                                </StackPanel>
+                                <StackPanel Margin="15 0 0 0"
+                                            Grid.Column="3">
+                                    <TextBlock Text="Count"
+                                               FontWeight="Normal"
+                                               Margin="0 0 0 3" />
+                                    <TextBox Text="3"
+                                             Padding="3" />
+                                </StackPanel>
+                            </Grid>
+
+                            <Grid>
+                                <!-- Grid Options -->
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="2*" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <!-- Send Button -->
+                                <Button Command="{Binding updateProperties}"
+                                        IsEnabled="{Binding isPanelPropertiesSaveActive}"
+                                        Background="LightGray"
+                                        Grid.Column="0"
+                                        Margin="0 0 10 0"
+                                        Padding="3">
+                                    <Run Foreground="Black">Save Changes</Run>
+                                </Button>
+                                <!-- Cancel Button -->
+                                <Button Padding="3"
+                                        Margin="5 0 10 0"
+                                        Grid.Column="1">Revert</Button>
+                            </Grid>
+                        </StackPanel>
+                    </TabItem>
+                    <!--#endregion-->
+                </TabControl>
+                <!--#endregion-->
+            </Grid>
+            <!--#endregion-->
+        </Grid>
+    </Grid>
+</Window>
