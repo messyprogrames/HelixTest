@@ -52,8 +52,7 @@ namespace HelixTest
         #region selected panel(s) properties
 
         public string selectedPanelId { get; set; }
-        public projectMaterials currentPanelMaterial { get; private set; }
-        public projectMaterials previewPanelMaterial { get; set; }
+        public projectMaterials selectedPanelMaterial { get; set; }
         public double selectedPanelMaterialOrientation { get; set; }
 
         #endregion
@@ -117,7 +116,7 @@ namespace HelixTest
 
             helixMaterials = Enum.GetValues(typeof(projectMaterials)).Cast<projectMaterials>();
 
-            updateProperties = new relayCommand(x => updatePanelProps());
+            updateProperties = new relayCommand(x => updatePanelProperties(selection));
             changePreviewMaterial = new relayCommand(x => previewSelectionMaterial());
 
             // titles
@@ -202,47 +201,41 @@ namespace HelixTest
                 isPanelIdActive = false;
                 isPanelPropertiesSaveActive = false;
                 selectedPanelId = "(non-panels selected)";
-                currentPanelMaterial = projectMaterials.None;
+                selectedPanelMaterial = projectMaterials.None;
             }
             // if there is not selection, return nothing
             else if (selection == null || selection.Count == 0)
             {
                 selectedPanelId = "Select a Panel";
-                currentPanelMaterial = projectMaterials.None;
+                selectedPanelMaterial = projectMaterials.None;
             }
             else
             {
                 // convert to list of panel data models
                 List<cubeDataModel> pdms = new List<cubeDataModel>();
                 foreach (Element3D geo in selection) pdms.Add(geo.DataContext as cubeDataModel);
-
+                
                 // check if all have the same panel material
-                if (pdms.Count != pdms.Where(p => p.material == pdms.First().material).ToList().Count) currentPanelMaterial = projectMaterials.None;
-                else currentPanelMaterial = pdms[0].material;
+                if (pdms.Count != pdms.Where(p => p.material == pdms.First().material).ToList().Count) selectedPanelMaterial = projectMaterials.None;
+                else selectedPanelMaterial = pdms[0].material;
+
             }
         }
+
 
         /// <summary>
         /// Pushes changes made to panel properties in the UI to the panels
         /// </summary>
-        public event Action updatePanelProps;
-        private void updatePanel()
+        private void updatePanelProperties(IEnumerable<Element3D> currentSelection)
         {
-            if (updatePanelProps != null)
+            foreach (Element3D geo in currentSelection)
             {
-                updatePanelProps();
-            }
-        }
-
-        public void updatePanelProperties()
-        {
-            IEnumerable<cubeDataModel> panelsOnly = selection.Where(s => s.DataContext.GetType() == typeof(cubeDataModel)).Select(dm => dm.DataContext).Cast<cubeDataModel>();
-
-            foreach (cubeDataModel pdm in panelsOnly)
-            {
+                // get the panel data model
+                cubeDataModel pdm = geo.DataContext as cubeDataModel;
                 // change the panel data model's properties
-                if (previewPanelMaterial != projectMaterials.None) pdm.material = previewPanelMaterial;
-                currentPanelMaterial = previewPanelMaterial;
+                if (selectedPanelMaterial != projectMaterials.None) pdm.material = selectedPanelMaterial;
+
+
             }
         }
 
@@ -366,6 +359,7 @@ namespace HelixTest
                     // reset the color
                     meshSel.Material = projectMatToHelixMatConverter.Convert(pdm.material) as Material;
                 }
+
             }
         }
 
@@ -397,21 +391,20 @@ namespace HelixTest
         private void previewElementMaterial(MeshGeometryModel3D element)
         {
             // get the mesh
-            //MeshGeometryModel3D meshSel = element as MeshGeometryModel3D;
+            MeshGeometryModel3D meshSel = element as MeshGeometryModel3D;
             // get data context
             if (element.DataContext.GetType() == typeof(cubeDataModel))
             {
                 // get the pdm
-                //panelDataModel pdm = element.DataContext as panelDataModel;
-                previewPanelMaterial = currentPanelMaterial;
+                cubeDataModel pdm = element.DataContext as cubeDataModel;
                 // assign the color
-                //pdm.panelMaterial = (previewPanelMaterial != projectMaterials.None) ? previewPanelMaterial : pdm.panelMaterial;
-                element.Material = projectMatToHelixMatConverter.Convert(previewPanelMaterial) as Material;
-
+                //pdm.panelMaterial = (selectedPanelMaterial != projectMaterials.None) ? selectedPanelMaterial : pdm.panelMaterial;
+                meshSel.Material = (selectedPanelMaterial != projectMaterials.None) ? projectMatToHelixMatConverter.Convert(selectedPanelMaterial) as Material : projectMatToHelixMatConverter.Convert(pdm.material) as Material;
             }
+
         }
 
         #endregion
-        
+
     }
 }

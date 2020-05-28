@@ -233,12 +233,12 @@
                             <ComboBox Name="cbPanelMaterial"
                                       Margin="0 0 0 15"
                                       ItemsSource="{Binding helixMaterials}"
-                                      SelectedItem="{Binding previewPanelMaterial, Mode=TwoWay}">
-                                <!--<i:Interaction.Triggers>
+                                      SelectedValue="{Binding selectedPanelMaterial}">
+                                <i:Interaction.Triggers>
                                     <i:EventTrigger EventName="SelectionChanged">
                                         <i:InvokeCommandAction Command="{Binding changePreviewMaterial}" />
                                     </i:EventTrigger>
-                                </i:Interaction.Triggers>-->
+                                </i:Interaction.Triggers>
                             </ComboBox>
                             <TextBlock Text="Material Grain Orientation"
                                        Margin="0 0 0 4"

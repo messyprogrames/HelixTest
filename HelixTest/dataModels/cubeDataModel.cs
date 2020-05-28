@@ -14,7 +14,7 @@ namespace HelixTest
             material = projectMaterials.Blue;
 
             // create mesh
-            MeshBuilder mb = new MeshBuilder(false, false, false);
+            MeshBuilder mb = new MeshBuilder(true, true, false);
             mb.AddBox(center, size, size, size);
 
             helixGeometry = mb.ToMeshGeometry3D();

@@ -34,46 +34,22 @@ namespace HelixTest
             viewModel = new mainViewModel();
             DataContext = viewModel;
 
-            Loaded += ViewLoadedHandler;
-            Unloaded += ViewUnloadedHandler;
 
             InitializeComponent();
         }
 
-        private void requestPanelUpdateHandler()
-        {
-            if (CheckAccess())
-            {
-                //viewModel.updatePanelProperties();
-                Dispatcher.BeginInvoke(DispatcherPriority.Render, new Action(() => viewModel.updatePanelProperties()));
-            }
-            //else
-            //{
-            //    Dispatcher.BeginInvoke(DispatcherPriority.Render, new Action(() => viewModel.updatePanelProperties()));
-            //}
-        }
-        //! VIEW LOADED HANDLER
-        private void ViewLoadedHandler(object sender, RoutedEventArgs e)
-        {
-
-            if (viewModel == null) return;
-
-            viewModel.updatePanelProps += requestPanelUpdateHandler;
-
-        }
-
-        private void ViewUnloadedHandler(object sender, RoutedEventArgs e)
-        {
-            UnregisterEventHandlers();
-        }
-
-        private void UnregisterEventHandlers()
-        {
-
-            if (viewModel == null) return;
-
-            viewModel.updatePanelProps -= requestPanelUpdateHandler;
-        }
+        //private void requestPanelUpdateHandler()
+        //{
+        //    if (CheckAccess())
+        //    {
+        //        //viewModel.updatePanelProperties();
+        //        Dispatcher.BeginInvoke(DispatcherPriority.Render, new Action(o => viewModel.updateProperties));
+        //    }
+        //    //else
+        //    //{
+        //    //    Dispatcher.BeginInvoke(DispatcherPriority.Render, new Action(() => viewModel.updatePanelProperties()));
+        //    //}
+        //}
 
     }
 }
